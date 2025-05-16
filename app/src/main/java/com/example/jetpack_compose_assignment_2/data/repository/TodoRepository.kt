@@ -34,4 +34,9 @@ class TodoRepository(
             emit(Resource.Error("Server error: ${e.message}"))
         }
     }
+
+    suspend fun getTodoById(id: Int): Todo? {
+        return todoDao.getTodoById(id)?.toTodo()
+    }
+
 }
