@@ -7,19 +7,14 @@ import com.example.jetpack_compose_assignment_2.data.model.toEntity
 import com.example.jetpack_compose_assignment_2.data.remote.TodoApi
 import com.example.jetpack_compose_assignment_2.util.Resource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class TodoRepository @Inject constructor(
+class TodoRepository(
     private val todoApi: TodoApi,
     private val todoDao: TodoDao
 ) {
-
     fun getTodos(): Flow<Resource<List<Todo>>> = flow {
         emit(Resource.Loading())
 
