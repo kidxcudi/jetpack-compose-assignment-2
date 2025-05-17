@@ -1,7 +1,8 @@
 package com.example.jetpack_compose_assignment_2.data.repository
 
 import com.example.jetpack_compose_assignment_2.data.local.TodoDao
-import com.example.jetpack_compose_assignment_2.data.local.toTodo
+import com.example.jetpack_compose_assignment_2.data.local.toTodo as entityToTodo
+import com.example.jetpack_compose_assignment_2.data.remote.toTodo as remoteToTodo
 import com.example.jetpack_compose_assignment_2.data.model.Todo
 import com.example.jetpack_compose_assignment_2.data.model.toEntity
 import com.example.jetpack_compose_assignment_2.data.remote.TodoApi
@@ -18,25 +19,28 @@ class TodoRepository(
     fun getTodos(): Flow<Resource<List<Todo>>> = flow {
         emit(Resource.Loading())
 
-        val cachedTodosEntities = todoDao.getAllTodos()
-        if (cachedTodosEntities.isNotEmpty()) {
-            val cachedTodos = cachedTodosEntities.map { it.toTodo() }
+        val cachedTodos = todoDao.getAllTodos().map { it.entityToTodo() }
+        if (cachedTodos.isNotEmpty()) {
             emit(Resource.Success(cachedTodos))
         }
 
         try {
             val remoteTodos = todoApi.getTodos()
-            todoDao.insertTodos(remoteTodos.map { it.toEntity() })
-            emit(Resource.Success(remoteTodos))
+            val todos = remoteTodos.map { it.remoteToTodo() }
+            todoDao.insertTodos(todos.map { it.toEntity() })
+            emit(Resource.Success(todos))
         } catch (e: IOException) {
-            emit(Resource.Error("Couldn't load data. Check your internet connection."))
+            if (cachedTodos.isEmpty()) {
+                emit(Resource.Error("Couldn't load data. Check your internet connection."))
+            }
         } catch (e: HttpException) {
-            emit(Resource.Error("Server error: ${e.message}"))
+            if (cachedTodos.isEmpty()) {
+                emit(Resource.Error("Server error: ${e.message}"))
+            }
         }
     }
 
     suspend fun getTodoById(id: Int): Todo? {
-        return todoDao.getTodoById(id)?.toTodo()
+        return todoDao.getTodoById(id)?.entityToTodo()
     }
-
 }
