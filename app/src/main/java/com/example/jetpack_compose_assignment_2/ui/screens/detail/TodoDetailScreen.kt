@@ -66,7 +66,7 @@ fun TodoDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.primary)
-                        .padding(20.dp, 6.dp, 16.dp, 6.dp),
+                        .padding(22.dp, 6.dp, 16.dp, 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -78,8 +78,7 @@ fun TodoDetailScreen(
                     )
                     Surface(
                         shape = MaterialTheme.shapes.small,
-                        color = if (currentTodo.completed)
-                            Color(0x334CAF50) else Color(0x33FF9800)
+                        color = Color.White.copy(alpha = 0.8f)
                     ) {
                         Text(
                             text = if (currentTodo.completed) "Done" else "Pending",
@@ -126,7 +125,8 @@ fun TodoDetailScreen(
                                 Text(
                                     currentTodo.title,
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                                 )
 
                                 Spacer(modifier = Modifier.height(20.dp))
