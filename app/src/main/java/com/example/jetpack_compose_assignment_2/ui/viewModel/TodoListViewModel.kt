@@ -27,4 +27,15 @@ class TodoViewModel(
             }
         }
     }
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+    fun refreshTodos() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            fetchTodos()
+            _isRefreshing.value = false
+        }
+    }
 }
