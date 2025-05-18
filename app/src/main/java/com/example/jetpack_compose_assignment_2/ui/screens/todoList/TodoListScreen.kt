@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -15,13 +16,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jetpack_compose_assignment_2.data.model.Todo
 import com.example.jetpack_compose_assignment_2.ui.viewModel.TodoViewModel
 import com.example.jetpack_compose_assignment_2.util.Resource
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,12 +38,43 @@ fun TodoListScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    val context = LocalContext.current
+    val systemUiController = rememberSystemUiController()
+    val topBarColor = MaterialTheme.colorScheme.primary
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = topBarColor,
+            darkIcons = false
+        )
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    var successShown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isRefreshing) {
+        val current = todosState
+        if (!isRefreshing && current is Resource.Success && !current.fromCache && !successShown) {
+            successShown = true
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Tasks refreshed successfully!",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
 
     LaunchedEffect(todosState) {
         if (todosState is Resource.Error) {
-            val errorMessage = todosState.message ?: "Failed to load tasks. Please check your internet."
-            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = todosState.message ?: "Unable to load tasks. Check your internet.",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -48,12 +83,15 @@ fun TodoListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("To-do list", color = MaterialTheme.colorScheme.onPrimary) },
+                title = {
+                    Text("To-do list", color = MaterialTheme.colorScheme.onPrimary, fontWeight = Bold)
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -64,7 +102,7 @@ fun TodoListScreen(
                 selectedTabIndex = selectedTab,
                 edgePadding = 0.dp,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary ,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
@@ -85,7 +123,10 @@ fun TodoListScreen(
 
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
-                onRefresh = { viewModel.refreshTodos() }
+                onRefresh = {
+                    successShown = false
+                    viewModel.refreshTodos()
+                }
             ) {
                 when (val state = todosState) {
                     is Resource.Loading -> Box(
@@ -112,16 +153,19 @@ fun TodoListScreen(
                     }
 
                     is Resource.Error -> Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { viewModel.refreshTodos() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Error loading tasks", color = Color.Red)
+                        Text("Error loading tasks. Pull down to retry.", color = Color.Red)
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun TodoItemCard(todo: Todo, onClick: () -> Unit) {
