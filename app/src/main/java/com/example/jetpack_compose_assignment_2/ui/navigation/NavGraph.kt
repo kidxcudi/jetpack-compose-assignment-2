@@ -27,7 +27,8 @@ fun NavGraph(
                 viewModel = todoViewModel,
                 onTodoClick = { todoId ->
                     navController.navigate("todoDetail/$todoId")
-                }
+                },
+                currentUserId = 1
             )
         }
         composable(
