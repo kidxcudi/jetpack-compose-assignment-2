@@ -68,4 +68,5 @@ dependencies {
     implementation(libs.okhttp.logging.interceptor)
 
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.accompanist.swiperefresh)
 }
