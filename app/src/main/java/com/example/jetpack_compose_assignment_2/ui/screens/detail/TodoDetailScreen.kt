@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -11,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.jetpack_compose_assignment_2.ui.viewModel.TodoDetailViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +25,15 @@ fun TodoDetailScreen(
         viewModel.loadTodoById(todoId)
     }
 
+    val systemUiController = rememberSystemUiController()
+    val topBarColor = MaterialTheme.colorScheme.primary
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = topBarColor,
+            darkIcons = false
+        )
+    }
+
     val todo by viewModel.todo.collectAsState()
 
     Scaffold(
@@ -33,7 +44,10 @@ fun TodoDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                )
             )
         }
     ) { paddingValues ->

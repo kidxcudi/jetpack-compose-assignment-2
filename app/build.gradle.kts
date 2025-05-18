@@ -69,4 +69,5 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.systemuicontroller)
 }

@@ -21,14 +21,14 @@ class TodoRepository(
 
         val cachedTodos = todoDao.getAllTodos().map { it.entityToTodo() }
         if (cachedTodos.isNotEmpty()) {
-            emit(Resource.Success(cachedTodos))
+            emit(Resource.Success(cachedTodos, fromCache = true))
         }
 
         try {
             val remoteTodos = todoApi.getTodos()
             val todos = remoteTodos.map { it.remoteToTodo() }
             todoDao.insertTodos(todos.map { it.toEntity() })
-            emit(Resource.Success(todos))
+            emit(Resource.Success(todos, fromCache = false))
         } catch (e: IOException) {
             if (cachedTodos.isEmpty()) {
                 emit(Resource.Error("Couldn't load data. Check your internet connection."))
