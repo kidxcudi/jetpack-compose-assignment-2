@@ -26,7 +26,7 @@ fun NavGraph(
             TodoListScreen(
                 viewModel = todoViewModel,
                 onTodoClick = { todoId ->
-                    navController.navigate("todoDetail/$todoId")
+                    navController.navigate(Screens.TodoDetail.createRoute(todoId))
                 },
                 currentUserId = 1
             )
